@@ -1,8 +1,8 @@
 import os
 import logging
+import json
 from mistralai import Mistral
 from dotenv import load_dotenv
-import json
 
 # Загрузка переменных окружения из файла api.env
 load_dotenv('api.env')
@@ -31,6 +31,10 @@ async def get_llm_response(user_id, user_message, system_prompt):
 
     # Добавляем текущее сообщение пользователя в контекст
     user_contexts[user_id].append({"role": "user", "content": user_message})
+
+    # Ограничиваем количество сообщений в контексте
+    if len(user_contexts[user_id]) > 10:
+        user_contexts[user_id] = user_contexts[user_id][-10:]
 
     # Логируем контекст перед отправкой запроса
     logging.info(f"Context before request: {user_contexts[user_id]}")

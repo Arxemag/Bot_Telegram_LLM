@@ -3,6 +3,7 @@ from aiogram.types import FSInputFile, CallbackQuery
 from api_llm import get_llm_response
 from button import Keyboard
 
+
 class RandomFactHandler:
     def __init__(self):
         self.system_prompt = """
@@ -10,18 +11,21 @@ class RandomFactHandler:
         """
 
     async def send_random_fact(self, message):
-        photo = FSInputFile(r'F:\PythonCod\Bot_Telegram_LLM\image\random.jpg')  # Используем FSInputFile
+        photo = FSInputFile(r'F:\\PythonCod\\Bot_Telegram_LLM\\image\\random.jpg')
         await message.answer_photo(photo=photo, caption="Вот ваш рандомный факт!")
 
-        # Запрос к ChatGPT с заранее заготовленным промптом
         random_fact_prompt = "Расскажи интересный факт на русском языке."
         llm_response = await get_llm_response(message.from_user.id, random_fact_prompt, self.system_prompt)
 
-        # Отправляем ответ пользователю
-        await message.answer(llm_response, reply_markup=await Keyboard.get_random_fact_buttons(), parse_mode="HTML")
+        if llm_response:
+            await message.answer(llm_response, reply_markup=await Keyboard.get_random_fact_buttons(), parse_mode="HTML")
+        else:
+            await message.answer("Произошла ошибка при получении факта. Пожалуйста, попробуйте еще раз.",
+                                 parse_mode="HTML")
 
     async def handle_random_end(self, callback_query: CallbackQuery):
-        await callback_query.message.answer("Возврат в главное меню.", reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+        await callback_query.message.answer("Возврат в главное меню.", reply_markup=await Keyboard.get_main_menu(),
+                                            parse_mode="HTML")
 
     async def handle_random_next(self, callback_query: CallbackQuery):
         # Запрос к ChatGPT с заранее заготовленным промптом
@@ -29,4 +33,5 @@ class RandomFactHandler:
         llm_response = await get_llm_response(callback_query.from_user.id, random_fact_prompt, self.system_prompt)
 
         # Отправляем ответ пользователю
-        await callback_query.message.answer(llm_response, reply_markup=await Keyboard.get_random_fact_buttons(), parse_mode="HTML")
+        await callback_query.message.answer(llm_response, reply_markup=await Keyboard.get_random_fact_buttons(),
+                                            parse_mode="HTML")

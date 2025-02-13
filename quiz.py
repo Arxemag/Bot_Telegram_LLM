@@ -24,21 +24,21 @@ class Quiz:
     async def get_question(self, llm_response):
         try:
             llm_response_json = json.loads(llm_response)
-            self.current_question = llm_response_json["question"]
-            self.current_answer = llm_response_json["answer"]
-            self.options = llm_response_json["options"]
+            self.current_question = llm_response_json.get("question")
+            self.current_answer = llm_response_json.get("answer")
+            self.options = llm_response_json.get("options")
             logging.info(f"Current question: {self.current_question}")
             logging.info(f"Current answer: {self.current_answer}")
             logging.info(f"Options: {self.options}")
             return self.current_question
-        except json.JSONDecodeError as e:
-            logging.error(f"JSONDecodeError: {e}")
+        except (json.JSONDecodeError, KeyError) as e:
+            logging.error(f"Error processing LLM response: {e}")
             return "Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз."
 
     def check_answer(self, user_answer):
         logging.info(f"User answer: {user_answer}")
-        # Убираем пробелы и сравниваем ответ пользователя с правильным ответом
-        if user_answer.strip() == self.current_answer.strip():
+        # Убираем префикс варианта и сравниваем ответ пользователя с правильным ответом
+        if user_answer.strip().split(') ')[-1] == self.current_answer.strip().split(') ')[-1]:
             self.score += 1
             return f"Правильно! Ваш счет: {self.score}"
         else:

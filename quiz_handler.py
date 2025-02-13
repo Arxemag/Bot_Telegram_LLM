@@ -36,7 +36,7 @@ class QuizHandler:
 
         try:
             llm_response_json = json.loads(llm_response)
-            await self.quiz.get_question(llm_response)  # Сохраняем вопрос и ответ в объекте quiz
+            await self.quiz.get_question(llm_response)
             await callback_query.message.answer(
                 f"<b>{llm_response_json['question']}</b>",
                 reply_markup=await Keyboard.get_answer_buttons(llm_response_json["options"]),
@@ -44,7 +44,11 @@ class QuizHandler:
             )
         except json.JSONDecodeError as e:
             logging.error(f"JSONDecodeError: {e}")
-            await callback_query.message.answer("Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз.", reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+            await callback_query.message.answer(
+                "Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз.",
+                reply_markup=await Keyboard.get_main_menu(),
+                parse_mode="HTML"
+            )
 
     async def handle_answer_selection(self, callback_query: CallbackQuery):
         answer = callback_query.data.split('_')[1]
@@ -64,7 +68,7 @@ class QuizHandler:
 
             try:
                 llm_response_json = json.loads(llm_response)
-                await self.quiz.get_question(llm_response)  # Сохраняем вопрос и ответ в объекте quiz
+                await self.quiz.get_question(llm_response)
                 await callback_query.message.answer(
                     f"<b>{llm_response_json['question']}</b>",
                     reply_markup=await Keyboard.get_answer_buttons(llm_response_json["options"]),
@@ -72,7 +76,11 @@ class QuizHandler:
                 )
             except json.JSONDecodeError as e:
                 logging.error(f"JSONDecodeError: {e}")
-                await callback_query.message.answer("Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз.", reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+                await callback_query.message.answer(
+                    "Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз.",
+                    reply_markup=await Keyboard.get_main_menu(),
+                    parse_mode="HTML"
+                )
         elif action == "change_theme":
             await callback_query.message.answer("Выберите новую тему для викторины:", reply_markup=await Keyboard.get_theme_buttons())
         elif action == "end":
