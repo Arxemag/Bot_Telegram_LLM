@@ -1,10 +1,13 @@
 import logging
+import os
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
 from api_llm import get_llm_response
 from button import Keyboard
+from prompts.personality_prompts import get_prompt
 
 class TalkStates(StatesGroup):
     waiting_for_personality = State()
@@ -34,9 +37,13 @@ class TalkHandler:
         data = await state.get_data()
         personality = data.get('personality')
         if personality:
-            prompt = f"Представьте, что вы {personality}. Ответьте на следующее сообщение: {message.text}"
-            llm_response = await get_llm_response(message.from_user.id, prompt, system_prompt="Вы — помощник для имитации разговора с известной личностью.")
-            logging.info(f"LLM Response: {llm_response}")
-            await message.answer(llm_response)
+            prompt = get_prompt(personality)
+            if prompt:
+                prompt += f" Ответьте на следующее сообщение: {message.text}"
+                llm_response = await get_llm_response(message.from_user.id, prompt, system_prompt="Вы — помощник для имитации разговора с известной личностью.")
+                logging.info(f"LLM Response: {llm_response}")
+                await message.answer(llm_response)
+            else:
+                await message.answer("Промпт для выбранной личности не найден.")
         else:
             await message.answer("Пожалуйста, сначала выберите известную личность.")
