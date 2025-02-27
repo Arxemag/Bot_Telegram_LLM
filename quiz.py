@@ -1,6 +1,8 @@
 import random
 import logging
 import json
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 
 class Quiz:
     def __init__(self):
@@ -11,6 +13,11 @@ class Quiz:
         self.score = 0
         self.in_quiz_mode = False
         self.options = []
+        self.system_prompt = "Ты помошник в проведении викторины."
+
+    class QuizStates(StatesGroup):
+        waiting_for_theme = State()
+        waiting_for_answer = State()
 
     def start_quiz(self):
         self.in_quiz_mode = True
@@ -24,21 +31,20 @@ class Quiz:
     async def get_question(self, llm_response):
         try:
             llm_response_json = json.loads(llm_response)
-            self.current_question = llm_response_json.get("question")
-            self.current_answer = llm_response_json.get("answer")
-            self.options = llm_response_json.get("options")
+            self.current_question = llm_response_json["question"]
+            self.current_answer = llm_response_json["answer"]
+            self.options = llm_response_json["options"]
             logging.info(f"Current question: {self.current_question}")
             logging.info(f"Current answer: {self.current_answer}")
             logging.info(f"Options: {self.options}")
             return self.current_question
-        except (json.JSONDecodeError, KeyError) as e:
-            logging.error(f"Error processing LLM response: {e}")
+        except json.JSONDecodeError as e:
+            logging.error(f"JSONDecodeError: {e}")
             return "Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз."
 
     def check_answer(self, user_answer):
         logging.info(f"User answer: {user_answer}")
-        # Убираем префикс варианта и сравниваем ответ пользователя с правильным ответом
-        if user_answer.strip().split(') ')[-1] == self.current_answer.strip().split(') ')[-1]:
+        if user_answer.strip() == self.current_answer.strip():
             self.score += 1
             return f"Правильно! Ваш счет: {self.score}"
         else:

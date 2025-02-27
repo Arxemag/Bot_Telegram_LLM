@@ -4,6 +4,8 @@ class Keyboard:
     @staticmethod
     async def get_main_menu():
         buttons = [
+            [KeyboardButton(text="/start")],
+            [KeyboardButton(text="/help")],
             [KeyboardButton(text="/clear")],
             [KeyboardButton(text="/quiz")],
             [KeyboardButton(text="/random")],

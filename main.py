@@ -1,12 +1,15 @@
 import logging
-from aiogram import Bot, Dispatcher
-from aiogram.types import Update
-from aiogram.dispatcher.middlewares.base import BaseMiddleware
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import FSInputFile
 from dotenv import load_dotenv
 import os
 import asyncio
 from router import router
 from button import Keyboard
+
 
 # Загрузка переменных окружения из файла api.env
 load_dotenv('api.env')
@@ -26,10 +29,10 @@ logging.basicConfig(
 
 # Инициализация бота и хранилища
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(storage=MemoryStorage())
 
 # Middleware для обработки ошибок
-class ErrorHandlingMiddleware(BaseMiddleware):
+class ErrorHandlingMiddleware:
     async def __call__(self, handler, event, data):
         try:
             return await handler(event, data)

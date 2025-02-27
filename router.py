@@ -1,13 +1,15 @@
+import logging
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
 from api_llm import get_llm_response, clear_context
 from button import Keyboard
 from quiz_handler import QuizHandler
 from random_fact_handler import RandomFactHandler
 from programmer_handler import ProgrammerHandler
 import json
-import logging
 
 router = Router()
 quiz_handler = QuizHandler()
@@ -30,13 +32,13 @@ async def send_welcome(message: types.Message):
     quiz_handler.quiz.end_quiz()
     programmer_handler.exit_programmer_mode()
     await message.answer("Привет! Я ваш Telegram бот. Выберите команду:",
-                        reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+                         reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
 
 # Обработчик команды /help
 @router.message(Command(commands=['help']))
 async def send_help(message: types.Message):
     await message.answer("Помощь: Вы можете отправлять мне текстовые сообщения, и я отвечу с помощью LLM.",
-                        reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+                         reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
 
 # Обработчик команды /clear
 @router.message(Command(commands=['clear']))
@@ -54,17 +56,20 @@ async def start_quiz(message: types.Message):
 # Обработчик выбора темы
 @router.callback_query(lambda c: c.data.startswith('theme_'))
 async def handle_theme_selection(callback_query: CallbackQuery):
-    await quiz_handler.handle_theme_selection(callback_query)
+    state = FSMContext(storage=MemoryStorage(), key=callback_query.from_user.id)
+    await quiz_handler.handle_theme_selection(callback_query, state=state)
 
 # Обработчик выбора ответа
 @router.callback_query(lambda c: c.data.startswith('answer_'))
 async def handle_answer_selection(callback_query: CallbackQuery):
-    await quiz_handler.handle_answer_selection(callback_query)
+    state = FSMContext(storage=MemoryStorage(), key=callback_query.from_user.id)
+    await quiz_handler.handle_answer_selection(callback_query, state=state)
 
 # Обработчик опций викторины
 @router.callback_query(lambda c: c.data.startswith('quiz_'))
 async def handle_quiz_options(callback_query: CallbackQuery):
-    await quiz_handler.handle_quiz_options(callback_query)
+    state = FSMContext(storage=MemoryStorage(), key=callback_query.from_user.id)
+    await quiz_handler.handle_quiz_options(callback_query, state=state)
 
 # Обработчик команды /random
 @router.message(Command(commands=['random']))
@@ -92,7 +97,7 @@ async def handle_message(message: types.Message):
     user_message = message.text
     if quiz_handler.quiz.in_quiz_mode:
         check_prompt = f"Проверь ответ на вопрос: {quiz_handler.quiz.current_question}. Ответ пользователя: {user_message}."
-        llm_response = await get_llm_response(message.from_user.id, check_prompt, quiz_handler.system_prompt)
+        llm_response = await get_llm_response(message.from_user.id, check_prompt, quiz_handler.quiz.system_prompt)
         logging.info(f"LLM Response for check: {llm_response}")
 
         try:
