@@ -49,7 +49,21 @@ class Keyboard:
 
     @staticmethod
     async def get_personality_buttons():
-        personalities = ["Альберт Эйнштейн", "Леонардо да Винчи", "Илон Маск", "Стив Джобс"]
-        buttons = [InlineKeyboardButton(text=personality, callback_data=f"personality_{personality}") for personality in personalities]
+        # Маппинг: {"Отображаемое имя": "имя_файла"}
+        personalities = {
+            "Альберт Эйнштейн": "einstein",
+            "Леонардо да Винчи": "da_vinci",
+            "Илон Маск": "musk",
+            "Стив Джобс": "jobs",
+        }
+
+        buttons = [
+            InlineKeyboardButton(
+                text=display_name,
+                callback_data=f"personality_{file_name}"
+            )
+            for display_name, file_name in personalities.items()
+        ]
+
         keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
         return keyboard
