@@ -8,13 +8,13 @@ from api_llm import get_llm_response, clear_context
 from button import Keyboard
 from quiz_handler import QuizHandler
 from random_fact_handler import RandomFactHandler
-from programmer_handler import ProgrammerHandler
+from talk_handler import TalkHandler
 import json
 
 router = Router()
 quiz_handler = QuizHandler()
 random_fact_handler = RandomFactHandler()
-programmer_handler = ProgrammerHandler()
+talk_handler = TalkHandler()
 
 # Настройка логирования
 logging.basicConfig(
@@ -30,7 +30,6 @@ logging.basicConfig(
 @router.message(Command(commands=['start']))
 async def send_welcome(message: types.Message):
     quiz_handler.quiz.end_quiz()
-    programmer_handler.exit_programmer_mode()
     await message.answer("Привет! Я ваш Telegram бот. Выберите команду:",
                          reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
 
@@ -86,28 +85,18 @@ async def handle_random_end_callback(callback_query: CallbackQuery):
 async def handle_random_next_callback(callback_query: CallbackQuery):
     await random_fact_handler.handle_random_next(callback_query)
 
-# Обработчик команды /programmer
-@router.message(Command(commands=['programmer']))
-async def handle_programmer_command(message: types.Message):
-    await programmer_handler.send_programmer_help(message)
+# Обработчик команды /talk
+@router.message(Command(commands=['talk']))
+async def handle_talk_command(message: types.Message, state: FSMContext):
+    await talk_handler.start_talk(message, state=state)
 
-# Обработчик текстовых сообщений
+# Обработчик выбора личности
+@router.callback_query(lambda c: c.data.startswith('personality_'))
+async def handle_personality_selection(callback_query: CallbackQuery):
+    state = FSMContext(storage=MemoryStorage(), key=callback_query.from_user.id)
+    await talk_handler.handle_personality_selection(callback_query, state=state)
+
+# Обработчик сообщений в режиме разговора
 @router.message()
-async def handle_message(message: types.Message):
-    user_message = message.text
-    if quiz_handler.quiz.in_quiz_mode:
-        check_prompt = f"Проверь ответ на вопрос: {quiz_handler.quiz.current_question}. Ответ пользователя: {user_message}."
-        llm_response = await get_llm_response(message.from_user.id, check_prompt, quiz_handler.quiz.system_prompt)
-        logging.info(f"LLM Response for check: {llm_response}")
-
-        try:
-            llm_response_json = json.loads(llm_response)
-            result = quiz_handler.quiz.check_answer(user_message, llm_response_json)
-            await message.answer(result, reply_markup=await Keyboard.get_quiz_options(), parse_mode="HTML")
-        except json.JSONDecodeError as e:
-            logging.error(f"JSONDecodeError: {e}")
-            await message.answer("Произошла ошибка при обработке ответа от LLM. Пожалуйста, попробуйте еще раз.", reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
-    elif programmer_handler.in_programmer_mode:
-        await programmer_handler.handle_programmer_message(message)
-    else:
-        await message.answer("Выберите команду.", reply_markup=await Keyboard.get_main_menu(), parse_mode="HTML")
+async def handle_talk_message(message: types.Message, state: FSMContext):
+    await talk_handler.handle_message(message, state=state)

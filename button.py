@@ -9,7 +9,8 @@ class Keyboard:
             [KeyboardButton(text="/clear")],
             [KeyboardButton(text="/quiz")],
             [KeyboardButton(text="/random")],
-            [KeyboardButton(text="/programmer")]
+            [KeyboardButton(text="/programmer")],
+            [KeyboardButton(text="/talk")]
         ]
         keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
         return keyboard
@@ -44,4 +45,11 @@ class Keyboard:
             [InlineKeyboardButton(text="Закончить", callback_data="random_end")]
         ]
         keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        return keyboard
+
+    @staticmethod
+    async def get_personality_buttons():
+        personalities = ["Альберт Эйнштейн", "Леонардо да Винчи", "Илон Маск", "Стив Джобс"]
+        buttons = [InlineKeyboardButton(text=personality, callback_data=f"personality_{personality}") for personality in personalities]
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
         return keyboard
