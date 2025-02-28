@@ -40,7 +40,8 @@ commands = [
     BotCommand(command="/quiz", description="Начать викторину"),
     BotCommand(command="/random", description="Получить случайный факт"),
     BotCommand(command="/programmer", description="Начать режим программиста"),
-    BotCommand(command="/talk", description="Начать разговор с известной личностью")
+    BotCommand(command="/talk", description="Начать разговор с известной личностью"),
+    BotCommand(command="/voice", description="Начать разговор с использованием голосовых сообщений")
 ]
 
 # Запуск бота

@@ -9,12 +9,14 @@ from button import Keyboard
 from quiz_handler import QuizHandler
 from random_fact_handler import RandomFactHandler
 from talk_handler import TalkHandler
+from voice_handler import VoiceHandler
 import json
 
 router = Router()
 quiz_handler = QuizHandler()
 random_fact_handler = RandomFactHandler()
 talk_handler = TalkHandler()
+voice_handler = VoiceHandler()
 
 # Настройка логирования
 logging.basicConfig(
@@ -100,3 +102,13 @@ async def handle_personality_selection(callback_query: CallbackQuery):
 @router.message()
 async def handle_talk_message(message: types.Message, state: FSMContext):
     await talk_handler.handle_message(message, state=state)
+
+# Обработчик команды /voice
+@router.message(Command(commands=['voice']))
+async def handle_voice_command(message: types.Message, state: FSMContext):
+    await voice_handler.start_voice(message, state=state)
+
+# Обработчик голосовых сообщений
+@router.message(lambda message: message.content_type == ContentType.VOICE)
+async def handle_voice_message(message: types.Message, state: FSMContext):
+    await voice_handler.handle_voice_message(message, state=state)

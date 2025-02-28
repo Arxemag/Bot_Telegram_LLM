@@ -10,7 +10,8 @@ class Keyboard:
             [KeyboardButton(text="/quiz")],
             [KeyboardButton(text="/random")],
             [KeyboardButton(text="/programmer")],
-            [KeyboardButton(text="/talk")]
+            [KeyboardButton(text="/talk")],
+            [KeyboardButton(text="/voice")]
         ]
         keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
         return keyboard
@@ -49,21 +50,7 @@ class Keyboard:
 
     @staticmethod
     async def get_personality_buttons():
-        # Маппинг: {"Отображаемое имя": "имя_файла"}
-        personalities = {
-            "Альберт Эйнштейн": "einstein",
-            "Леонардо да Винчи": "da_vinci",
-            "Илон Маск": "musk",
-            "Стив Джобс": "jobs",
-        }
-
-        buttons = [
-            InlineKeyboardButton(
-                text=display_name,
-                callback_data=f"personality_{file_name}"
-            )
-            for display_name, file_name in personalities.items()
-        ]
-
+        personalities = ["Альберт Эйнштейн", "Леонардо да Винчи", "Илон Маск", "Стив Джобс"]
+        buttons = [InlineKeyboardButton(text=personality, callback_data=f"personality_{personality}") for personality in personalities]
         keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
         return keyboard
